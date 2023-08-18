@@ -50,3 +50,8 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+.vscode/
+bin/
+.vscode/settings.json
+.vscode/c_cpp_properties.json

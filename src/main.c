@@ -1,59 +1,107 @@
+/*
+
+Created by: no-good-name
+Created on 2023-07-31
+Updated: 2023-08-18
+
+*/
+
+
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <SDL.h>
 #include <math.h>
 
 #include "main_type.h"
 
-#define WINDOW_WIDTH 200
-#define WINDOW_HEIGHT 200
-#define TARGET_DELTATIME 16.67
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 600
 
 static struct {
     SDL_Window *g_window;
     SDL_Renderer *g_renderer;
     SDL_Texture *g_texture;
+    struct {
+        int x;
+        int y;
+    } mouse;
     bool quit;
 } state;
 
-/*
-void rendering(SDL_Window *window, SDL_Renderer *renderer) {
-    window = SDL_CreateWindow("Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
-    renderer = SDL_CreateRenderer(state.g_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+static void init(void) {
+    system("cls");
+    SDL_Init(SDL_INIT_EVERYTHING);
+
+    state.g_window = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+    state.g_renderer = SDL_CreateRenderer(state.g_window, -1, SDL_RENDERER_ACCELERATED);
+    state.g_texture = SDL_CreateTexture(state.g_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    state.quit = false;
 }
-*/
 
-int main(int argc, char* argv[]) {
-    SDL_Init(SDL_INIT_VIDEO);
-
-    int RGB[3] = {255, 255, 255};
-
-    SDL_CreateWindowAndRenderer(WINDOW_WIDTH*4, WINDOW_HEIGHT*4, 0, &state.g_window, &state.g_renderer);
-    SDL_RenderSetScale(state.g_renderer, 4, 4);
-
-    // Color
-    SDL_SetRenderDrawColor(state.g_renderer, 0, 0, 0, 255);
-    SDL_SetRenderDrawColor(state.g_renderer, RGB[0], RGB[1], RGB[2], 255);
-
-    for (int i = 0; i <= WINDOW_WIDTH; i++) {
-        SDL_RenderDrawPoint(state.g_renderer, i, i);
-    }
-    // Update the screen
-    SDL_RenderPresent(state.g_renderer);
-
-    SDL_Event event;
-
-    while (1) {
-        if (SDL_PollEvent(&event) && event.type == SDL_QUIT) {
-            break;
-        }
-    }
-
+static void deinit(void) {
+    SDL_DestroyTexture(state.g_texture);
     SDL_DestroyRenderer(state.g_renderer);
     SDL_DestroyWindow(state.g_window);
     SDL_Quit();
+    printf("Program exited successfully.\n");
+}
 
+void input(void) {
+    const uint8_t *keystate = SDL_GetKeyboardState(NULL);
+    if (keystate[SDL_SCANCODE_ESCAPE]) {
+        state.quit = true;
+    }
+    SDL_GetMouseState(&state.mouse.x, &state.mouse.y);
+    if(keystate[SDL_SCANCODE_SPACE]) {
+        printf("x: %d, y: %d\n", state.mouse.x, state.mouse.y);
+    }
+}
 
-    return 0;
+void gradient(int w, int h, color_t c1, color_t c2) {
+    uint32_t *pixels = (uint32_t *)malloc(w * h * sizeof(uint32_t));
+    for (int i = 0; i < w * h; i++) {
+        float t = (float)i / (float)(w * h);
+        uint8_t r = (uint8_t)(c1.r + (c2.r - c1.r) * t);
+        uint8_t g = (uint8_t)(c1.g + (c2.g - c1.g) * t);
+        uint8_t b = (uint8_t)(c1.b + (c2.b - c1.b) * t);
+        uint8_t a = (uint8_t)(c1.a + (c2.a - c1.a) * t);
+        pixels[i] = (a << 24) | (b << 16) | (g << 8) | r;
+    }
+    SDL_UpdateTexture(state.g_texture, NULL, pixels, w * sizeof(uint32_t));
+    free(pixels);
+}
+
+int main(int argc, char *argv[]) {
+    init();
+    color_t c1 = { 255, 0, 0, 255 };
+    color_t c2 = { 0, 0, 255, 255 };
+    
+    int over = 0;
+
+    while (!state.quit) {
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                state.quit = true;
+            }
+        }
+        if (state.quit == true) {
+            break;
+        }
+        input();
+        gradient(WINDOW_WIDTH, WINDOW_HEIGHT, c1, c2);
+
+        SDL_RenderClear(state.g_renderer);
+        SDL_RenderCopy(state.g_renderer, state.g_texture, NULL, NULL);
+        SDL_RenderPresent(state.g_renderer);
+    }
+
+    deinit();
+    printf("R: %d G: %d B: %d\n", c1.r, c1.g, c1.b);
+    printf("R1: %d G1: %d B1: %d\n", c2.r, c2.g, c2.b);
+
+    return EXIT_SUCCESS;
 }

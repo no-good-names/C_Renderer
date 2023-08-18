@@ -1,20 +1,32 @@
-CC = gcc
+# Created by: no-good-names
+# Created on: 2023-07-31
+# Updated on: 2023-08-18
 
+CC = gcc
 SRC_DIR= src
 BUILD_DIR= bin
-TEST_DIR= test
 
 INCLUDE_PATHS= -IC:\SDL2\x64\include\SDL2
 LIBRARY_PATHS= -LC:\SDL2\x64\lib
-COMPILER_FLAGS= 
+COMPILER_FLAGS= -w
 LINKER_FLAGS= -lmingw32 -lSDL2main -lSDL2
 
-all: main bin
+.PHONY: all clean run
 
-main: $(SRC_DIR)\main.c
-		$(CC) $(SRC_DIR)\main.c $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o $(BUILD_DIR)\main
+all: $(BUILD_DIR)/main
 
-always: bin
+$(BUILD_DIR)/main: $(SRC_DIR)/main.c
+	@echo "Building..."
+	@mkdir -p $(BUILD_DIR)
+	@$(CC) $(SRC_DIR)\main.c $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o $(BUILD_DIR)/main
+	@echo "Building finished."
 
-bin:
-		mkdir -p $(BUILD_DIR)
+clean: 
+	@echo "Cleaning..."
+	@rm -rf $(BUILD_DIR)
+	@echo "Cleaning finished."
+
+run: all
+	@echo "Running..."
+	@.\$(BUILD_DIR)\main
+	@echo "Task finished."

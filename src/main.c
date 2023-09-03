@@ -10,9 +10,7 @@ Updated: 2023-08-18
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <ctype.h>
 #include <SDL.h>
-#include <math.h>
 
 #include "main_type.h"
 
@@ -46,7 +44,6 @@ static void deinit(void) {
     SDL_DestroyRenderer(state.g_renderer);
     SDL_DestroyWindow(state.g_window);
     SDL_Quit();
-    printf("Program exited successfully.\n");
 }
 
 void input(void) {
@@ -54,8 +51,8 @@ void input(void) {
     if (keystate[SDL_SCANCODE_ESCAPE]) {
         state.quit = true;
     }
-    SDL_GetMouseState(&state.mouse.x, &state.mouse.y);
     if(keystate[SDL_SCANCODE_SPACE]) {
+        SDL_GetMouseState(&state.mouse.x, &state.mouse.y);
         printf("x: %d, y: %d\n", state.mouse.x, state.mouse.y);
     }
 }
